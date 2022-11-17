@@ -1,71 +1,140 @@
-#!/usr/bin/env python3
-
-import sys
 import socket
-import selectors
-import types
+from threading import Thread
+import mysql.connector
+print("Entered program")
 
-sel = selectors.DefaultSelector()
-messages = [b"Message 1 from client.", b"Message 2 from client."]
-
-
-def start_connections(host, port, num_conns):
-    server_addr = (host, port)
-    for i in range(0, num_conns):
-        connid = i + 1
-        print(f"Starting connection {connid} to {server_addr}")
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setblocking(False)
-        sock.connect_ex(server_addr)
-        events = selectors.EVENT_READ | selectors.EVENT_WRITE
-        data = types.SimpleNamespace(
-            connid=connid,
-            msg_total=sum(len(m) for m in messages),
-            recv_total=0,
-            messages=messages.copy(),
-            outb=b"",
-        )
-        sel.register(sock, events, data=data)
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print("Clien initialized")
+nickname = input("Enter a nickname: ")
+print("Entered nickname")
+# password=input("Enter password")
+while True:
+    name2= input("Enter Receiver's Name")
+    print("Entered receiver name")
 
 
-def service_connection(key, mask):
-    sock = key.fileobj
-    data = key.data
-    if mask & selectors.EVENT_READ:
-        recv_data = sock.recv(1024)  # Should be ready to read
-        if recv_data:
-            print(f"Received {recv_data!r} from connection {data.connid}")
-            data.recv_total += len(recv_data)
-        if not recv_data or data.recv_total == data.msg_total:
-            print(f"Closing connection {data.connid}")
-            sel.unregister(sock)
-            sock.close()
-    if mask & selectors.EVENT_WRITE:
-        if not data.outb and data.messages:
-            data.outb = data.messages.pop(0)
-        if data.outb:
-            print(f"Sending {data.outb!r} to connection {data.connid}")
-            sent = sock.send(data.outb)  # Should be ready to write
-            data.outb = data.outb[sent:]
-
-
-if len(sys.argv) != 4:
-    print(f"Usage: {sys.argv[0]} <host> <port> <num_connections>")
-    sys.exit(1)
-
-host, port, num_conns = sys.argv[1:4]
-start_connections(host, int(port), int(num_conns))
-
-try:
+    mydb = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="--",
+    database="FASTCHAT"
+    )
+    mycursor = mydb.cursor()
+    porttoconnect=0
     while True:
-        events = sel.select(timeout=1)
-        if events:
-            for key, mask in events:
-                service_connection(key, mask)
-        # Check for a socket being monitored to continue.
-        if not sel.get_map():
-            break
-except KeyboardInterrupt:
-    print("Caught keyboard interrupt, exiting")
-finally:
-    sel.close()
+        password=input("Enter password")
+        mycursor.execute("SELECT name FROM FASTCHAT")
+
+        myresult = mycursor.fetchall()
+        check=0
+
+        for x in myresult:
+            print(x)
+            if(x==nickname):
+                check=1
+                break
+        check2=0
+        for y in myresult:
+            if(y==name2):
+                check2=1
+                break
+        
+        if(check2==1):
+            mycursor.execute("SELECT port FROM FASTCHAT where name=%s")
+            adr = (name2, )
+            mycursor.execute(mycursor, adr)
+            myresult = mycursor.fetchall()
+            port=0
+            for x in myresult:
+                port=x
+                porttoconnect=x
+            if(check==0 ):
+
+                sql = "INSERT INTO customers (name, address,port) VALUES (%s, %s, %s)"
+                val = (nickname, password, port)
+                mycursor.execute(sql, val)
+                break
+            else:
+                mycursor.execute("SELECT password FROM FASTCHAT where name=%s")
+                adr = (nickname )
+                mycursor.execute(mycursor, adr)
+                myresult = mycursor.fetchall()
+                pwd=""
+                for x in myresult:
+                    pwd=x
+                if(pwd==password):
+                    print("User Entered")
+                    sql="update FASTCHAT set port=%s where name='%s"
+                    val=(port,nickname)
+                    mycursor.execute(sql,val)
+                    mydb.commit()
+                    break
+                else:
+                    print("Wrong Password Entered")
+        else:
+            name2= input("Enter Receiver's Name")
+
+    client.connect(("127.0.0.1", porttoconnect))
+    print("Client connected")
+
+    def recieve():
+        """
+        Recieving messages from server.
+        """
+        print("Entered recieve")
+        while True:
+            print("Entered while loop of receive")
+            try:
+                print("Entered try of receive")
+                message = client.recv(1024).decode("ascii")
+                print("Message received")
+                if message == "NICK":
+                    print("msg recieved is nick")
+                    client.send(nickname.encode("ascii"))
+                else:
+                    print("message received is not nick")
+                    print(message)
+            except Exception as e:
+                print(e)
+                print("Some error occured!")
+                client.close()
+                break
+
+
+    def send():
+        print("Entered into send func")
+        # while True:
+        #     name2=input("Enter 2nd user: ")
+        #     print("entered user2")
+        client.send(name2.encode("ascii"))
+        while True:
+                print("Entered while loop of send func")
+                message = f"{nickname}: {input()}"
+                print("Took msg from user")
+                client.send(message.encode("ascii"))
+                print("Sent mssg")
+                xinp=input("Enter X to exit")
+                if xinp=="X": 
+                    x1="Exiting chat"
+                    client.send(x1.encode("ascii"))
+                    break
+                else:
+                    x1="Continue"
+                    client.send(x1.encode("ascii"))
+
+
+
+    # recieving thread
+    print("Before receiving thread")
+    r_thread = Thread(target=recieve)
+    print("initialized rec thread")
+    r_thread.start()
+    print("Started rec thread")
+
+    # sending thread
+    print("before send thread init")
+    s_thread = Thread(target=send)
+    print("init send thread")
+    s_thread.start()
+    print("started send thread")
+    

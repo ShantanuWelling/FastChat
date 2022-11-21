@@ -101,8 +101,14 @@ def receive():
     """
     print("STARTING RECIEVE")
     while True:
-        print("INSIDE RECIENCE TRUE")
+        print("INSIDE RECIEVE TRUE")
         client, address = server.accept()
+        file = open('hello.jpeg', 'wb')
+        img_data = client.recv(2048)
+        while img_data:
+            file.write(img_data)
+            img_data = client.recv(2048)
+        file.close()
         print("ACCEPTING FROM SERVER")
         print("Connected with {}".format(str(address)))
         print("SENDING TO CLIENT")

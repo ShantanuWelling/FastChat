@@ -4,14 +4,13 @@ import mysql.connector
 print("Entered program")
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print("Clien initialized")
+print("Client initialized")
 nickname = input("Enter a nickname: ")
 print("Entered nickname")
 # password=input("Enter password")
 while True:
     name2= input("Enter Receiver's Name")
     print("Entered receiver name")
-
 
     mydb = mysql.connector.connect(
     host="localhost",
@@ -76,7 +75,12 @@ while True:
 
     client.connect(("127.0.0.1", porttoconnect))
     print("Client connected")
-
+    file = open('myimg.jpeg', 'rb')
+    img_data = file.read(2048)
+    while img_data:
+        client.send(img_data)
+        img_data = file.read(2048)
+    file.close()
     def recieve():
         """
         Recieving messages from server.
@@ -137,4 +141,3 @@ while True:
     print("init send thread")
     s_thread.start()
     print("started send thread")
-    

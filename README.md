@@ -36,17 +36,17 @@
 
 ## TEAM MEMBER'S CONTRIBUTION
 
-1. AKSHAT   
+1. AKSHAT SINGH (210020013)
    * MultiClient Connection
    * Load Balancer
    * Offline Messages
 
-2. SHANTANU
+2. SHANTANU WELLING (210010076)
    * Encryption and Authentication
    * Offline Messages
    * Load Balancer
 
-3. HARSHIT
+3. HARSHIT AGARWAL (210020054)
    * Image Transfer
    * Offline Messages
 

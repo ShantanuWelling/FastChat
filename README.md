@@ -6,6 +6,9 @@
 3. Load Balancing of The Server
 4. Storing of The Offline Messages
 5. End to End Encrption Using pyCrpto
+6. Random private key generation for each user using secrets module
+7. Password and offline messages stored in database using hashlib
+8. Input password with getpass module
 
 ## TECH STACK:
 1. python
@@ -13,6 +16,9 @@
 3. python socket library
 4. hashlib
 5. pycrpto
+6. getpass
+7. secrets
+8. base64 encoding
 
 ## RUNNING INSTRUCTIONS
 1. Start the server.py by running the python3 server.py file
@@ -21,7 +27,7 @@
    - If you want to register, enter a unique name and your password
    - If you want to login, then enter your name and password
 4. After login-in, Select the user you want to send the message to
-5. Then you can type the message to sned
+5. Then you can type the message to send
 6. After each message you will the option to switch reciever or close the chat
 
 ## YET TO BE DONE

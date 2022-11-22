@@ -53,4 +53,3 @@
 
 
 
-, what technology you’ve used, how it is supposed to be run, what is yet to be done, team member's contributions

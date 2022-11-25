@@ -41,15 +41,15 @@
    * MultiClient Connection
    * Load Balancer
    * Offline Messages
-   * Performance Analysis
    * Group Creation
+   * Performance Analysis
 
 2. SHANTANU WELLING (210010076)
    * Encryption and Authentication
    * Offline Messages
    * Load Balancer
-   * Performance Analysis
    * Group member addition and deletion
+   * Performance Analysis
 
 3. HARSHIT AGARWAL (210020054)
    * Image Transfer and Encryption

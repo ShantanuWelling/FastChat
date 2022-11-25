@@ -41,6 +41,7 @@
    * MultiClient Connection
    * Load Balancer
    * Offline Messages
+   * Performance Analysis
 
 2. SHANTANU WELLING (210010076)
    * Encryption and Authentication

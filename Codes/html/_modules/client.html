@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>client &mdash; fastchat  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+            <a href="../index.html" class="icon icon-home"> fastchat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">FastChat</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fastchat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">client</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">load</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">import</span> <span class="nn">mysql.connector</span>
+<span class="kn">from</span> <span class="nn">hashlib</span> <span class="kn">import</span> <span class="n">sha256</span>
+<span class="kn">from</span> <span class="nn">getpass</span> <span class="kn">import</span> <span class="n">getpass</span>
+<span class="kn">import</span> <span class="nn">secrets</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">crypt</span> <span class="kn">import</span> <span class="n">AESCipher</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered program&quot;</span><span class="p">)</span>
+
+
+<span class="n">CB</span> <span class="o">=</span> <span class="n">load</span><span class="o">.</span><span class="n">ClientBalance</span><span class="p">()</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Clien initialized&quot;</span><span class="p">)</span>
+<span class="n">signin</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;U want to Register or Login in (R or L):  &quot;</span><span class="p">)</span>
+<span class="n">nickname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">check</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">rname</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">porttoconnect</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">port</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">c</span> <span class="o">=</span> <span class="s2">&quot;R&quot;</span>
+
+<span class="k">if</span> <span class="n">signin</span> <span class="o">==</span> <span class="s2">&quot;R&quot;</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter a name:&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered name&quot;</span><span class="p">)</span>
+
+        <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">porttoconnect</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+        <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">):</span>
+                <span class="n">c</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="n">nickname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WNtwe jsfnj&quot;</span><span class="p">)</span>
+            <span class="c1"># password = getpass()</span>
+            <span class="n">password</span><span class="o">=</span><span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter Password&quot;</span><span class="p">)</span>
+            <span class="c1"># print(&quot;kd&quot;)</span>
+            <span class="n">p</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="n">pvtkey</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">secrets</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">string</span><span class="o">.</span><span class="n">ascii_uppercase</span> <span class="o">+</span>
+                             <span class="n">string</span><span class="o">.</span><span class="n">digits</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_lowercase</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">16</span><span class="p">))</span>
+            <span class="c1"># pvtkey=bytes(pvtkey,&#39;utf-8&#39;)</span>
+            <span class="n">enc_pass</span> <span class="o">=</span> <span class="n">sha256</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+            <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;INSERT INTO CLIENTS (name, password,port,pkey) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                   <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">enc_pass</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">pvtkey</span><span class="p">))</span>
+            <span class="c1"># sql = (&quot;INSERT INTO favourite (number, info) VALUES (%s, %s)&quot;, (numbers, animals))</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">sql</span><span class="p">)</span>
+            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="n">check</span> <span class="o">=</span> <span class="mi">1</span>
+
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;UserName Already Taken&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter a name:&quot;</span><span class="p">)</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="n">getpass</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered name&quot;</span><span class="p">)</span>
+
+        <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">porttoconnect</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name,password FROM CLIENTS&quot;</span><span class="p">)</span>
+        <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">sha256</span><span class="p">(</span><span class="nb">bytes</span><span class="p">(</span><span class="n">password</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()):</span>
+                <span class="n">check</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">check</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">nickname</span> <span class="o">=</span> <span class="n">name</span>
+            <span class="k">break</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid Combination&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">check</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+
+    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;select pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="c1"># start</span>
+    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,))</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">mykey</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>
+    <span class="n">sendcip</span> <span class="o">=</span> <span class="n">AESCipher</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>  <span class="c1"># end</span>
+
+    <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;select * from OFFLINE where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+    <span class="n">offline</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">offline</span><span class="p">)</span>
+
+    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="c1"># print(&quot;======PENDING CHATS=======&quot;)</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="nb">print</span><span class="p">()</span>
+
+    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM OFFLINE WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">offline2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">offline2</span><span class="p">)</span>
+    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+    <span class="c1">####</span>
+    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+    <span class="p">)</span>
+
+    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">s3</span> <span class="o">=</span> <span class="s2">&quot;select * from IMAGES where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+    <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+    <span class="n">myresult2</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult2</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image from &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+        <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">)</span>
+        <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="nb">print</span><span class="p">()</span>
+
+    <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM IMAGES WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">offline3</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">offline3</span><span class="p">)</span>
+    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User Entered&quot;</span><span class="p">)</span>
+
+<span class="c1"># while True:</span>
+    <span class="n">type2</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+        <span class="s2">&quot;ENTER GR: GROUP MESSAGING  || P: PERSONAL MESSAGING || X: LEAVE CHAT&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">type2</span> <span class="o">==</span> <span class="s2">&quot;P&quot;</span><span class="p">:</span>
+        <span class="n">notexit</span><span class="o">=</span><span class="mi">0</span>
+        <span class="k">if</span> <span class="n">check</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">name2</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter Receiver&#39;s Name&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered receiver name&quot;</span><span class="p">)</span>
+                <span class="n">check2</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                <span class="p">)</span>
+                <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">porttoconnect</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+                <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name2</span><span class="p">):</span>
+
+                        <span class="n">check2</span> <span class="o">=</span> <span class="mi">1</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">check2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;SELECT port FROM CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">name2</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+                    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="n">port</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;yes: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                        <span class="n">port</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="n">porttoconnect</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                    <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="n">rname</span> <span class="o">=</span> <span class="n">name2</span>
+                    <span class="k">break</span>
+
+        <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;SELECT port FROM CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+        <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">rname</span><span class="p">,</span> <span class="p">)</span>
+        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+        <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;yes: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">porttoconnect</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+        <span class="k">if</span> <span class="n">porttoconnect</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">port</span> <span class="o">=</span> <span class="n">CB</span><span class="o">.</span><span class="n">Addconn</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">CB</span><span class="o">.</span><span class="n">incrementconn</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">port</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,)</span>
+        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+        <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="c1"># rname = name2</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PORT TO CONNECT: &quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NICKNAME IS&quot;</span><span class="p">,</span> <span class="n">nickname</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">port</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="s2">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Client connected&quot;</span><span class="p">)</span>
+
+        <span class="n">s6</span> <span class="o">=</span> <span class="s2">&quot;select pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="c1"># start</span>
+        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s6</span><span class="p">,</span> <span class="p">(</span><span class="n">rname</span><span class="p">,))</span>
+        <span class="n">res1</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">reckey</span> <span class="o">=</span> <span class="n">res1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">reckey</span><span class="p">)</span>
+        <span class="n">recvcip</span> <span class="o">=</span> <span class="n">AESCipher</span><span class="p">(</span><span class="n">reckey</span><span class="p">)</span>  <span class="c1"># end</span>
+
+<div class="viewcode-block" id="recieve"><a class="viewcode-back" href="../client.html#client.recieve">[docs]</a>        <span class="k">def</span> <span class="nf">recieve</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;This function is implemented to recieve messages from the server. The message can be Image or text. Both cases are handeled differently. If a Image is recieved then first a message indicating that a image is incoming is recieved so that the client knows that it has to now recieve image.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">global</span> <span class="n">rname</span>
+            <span class="k">global</span> <span class="n">sendcip</span>
+            <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Recieving messages from server.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered recieve&quot;</span><span class="p">)</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered while loop of receive&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered try of receive&quot;</span><span class="p">)</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1048576</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Received Something&quot;</span><span class="p">)</span>
+                    <span class="c1"># message = sendcip.msg_decrypt(message) ##</span>
+                    <span class="c1"># print(&quot;Message received: &quot;, message)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">rname</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="c1"># if message==&quot;CLOSE&quot;:</span>
+                    <span class="c1">#     return</span>
+                    <span class="k">if</span> <span class="n">message</span> <span class="o">==</span> <span class="s2">&quot;NICK&quot;</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;msg recieved is nick&quot;</span><span class="p">)</span>
+                        <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">nickname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                    <span class="k">elif</span> <span class="n">message</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">17</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Image is incoming&quot;</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image looping&quot;</span><span class="p">)</span>
+                        <span class="n">msg2</span> <span class="o">=</span> <span class="n">message</span><span class="p">[</span><span class="mi">17</span><span class="p">:]</span>
+                        <span class="c1"># msg2 = sendcip.msg_decrypt(msg)</span>
+                        <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                        <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+                        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+                        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s1">&#39;ReceivedImg.jpg&#39;</span><span class="p">)</span>
+                        <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;In Else&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;message received is not nick&quot;</span><span class="p">)</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Some error occured!&quot;</span><span class="p">)</span>
+                    <span class="c1"># client.close()</span>
+                    <span class="k">break</span></div>
+
+<div class="viewcode-block" id="send"><a class="viewcode-back" href="../client.html#client.send">[docs]</a>        <span class="k">def</span> <span class="nf">send</span><span class="p">():</span>
+            <span class="sd">&quot;&quot;&quot;This function is used to send messages to the server which sends messages to another client. Here also the messages can be image or text. For image it takes image name as input from the user and for text it takes the message as input from the user. If another client is offline then the messages are stored in a database of MySQL which are redirected to the client when it comes online. The messages stored in the database or sent to the client are first encrypted for implementing E2E encryption. </span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">global</span> <span class="n">rname</span>
+            <span class="k">global</span> <span class="n">port</span>
+            <span class="k">global</span> <span class="n">porttoconnect</span>
+            <span class="k">global</span> <span class="n">recvcip</span>
+            <span class="k">global</span> <span class="n">sendcip</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered into send func&quot;</span><span class="p">)</span>
+            <span class="k">global</span> <span class="n">c</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="s2">&quot;R&quot;</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">rname</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                    <span class="k">break</span>
+
+                <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                <span class="p">)</span>
+
+                <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;SELECT port FROM CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">rname</span><span class="p">,</span> <span class="p">)</span>
+                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+                <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;yes: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+                    <span class="n">port</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">porttoconnect</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># sql = &quot;update CLIENTS set port=%s where name=%s&quot;</span>
+                <span class="c1"># if porttoconnect==-1 :</span>
+                <span class="c1">#     port=ClientBalance</span>
+                <span class="c1"># val = (port, nickname,)</span>
+                <span class="c1"># mycursor.execute(sql, val)</span>
+                <span class="c1"># mydb.commit()</span>
+
+                <span class="n">z</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">str1</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+                <span class="n">choice</span> <span class="o">=</span> <span class="s2">&quot;N&quot;</span>
+                <span class="n">choice5</span> <span class="o">=</span> <span class="s2">&quot;N&quot;</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">porttoconnect</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">rname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entered while loop of send func&quot;</span><span class="p">)</span>
+                        <span class="c1"># mystr = input()</span>
+                        <span class="c1"># message = nickname + &quot;: &quot; + mystr</span>
+                        <span class="n">choice</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;ENTER M FOR MESSAGE OR I FOR IMAGE: &quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">choice</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
+                            <span class="c1"># msg = &quot;Text is incoming&quot;</span>
+                            <span class="c1"># client.send(msg.encode(&quot;ascii&quot;))</span>
+                            <span class="n">z</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;SELECT port FROM CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                            <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">rname</span><span class="p">,</span> <span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+                            <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                                <span class="n">porttoconnect</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                            <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                            <span class="k">if</span> <span class="n">porttoconnect</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                                <span class="n">choice5</span> <span class="o">=</span> <span class="s2">&quot;B&quot;</span>
+                                <span class="k">break</span>
+                            <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">nickname</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">z</span><span class="si">}</span><span class="s2">&quot;</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Took msg from user&quot;</span><span class="p">)</span>
+                            <span class="n">msg1</span> <span class="o">=</span> <span class="n">recvcip</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+                            <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg1</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sent mssg&quot;</span><span class="p">)</span>
+
+                        <span class="k">elif</span> <span class="n">choice</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Image is incoming&quot;</span>
+                            <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">msg</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sent image message to server&quot;</span><span class="p">)</span>
+                            <span class="n">imgName</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter name of the image: &quot;</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending image to server&quot;</span><span class="p">)</span>
+
+                            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">imgName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+                            <span class="n">img_data</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">encodebytes</span><span class="p">(</span><span class="n">img_data</span><span class="p">)</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">str1</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                            <span class="c1"># str2=recvcip.msg_encrypt(str1)</span>
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;SELECT port FROM CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                            <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">rname</span><span class="p">,</span> <span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+                            <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                                <span class="n">porttoconnect</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                            <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                            <span class="k">if</span> <span class="n">porttoconnect</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                                <span class="n">choice5</span> <span class="o">=</span> <span class="s2">&quot;B&quot;</span>
+                                <span class="k">break</span>
+                            <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">str1</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image sent to Server&quot;</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sending sent mssg to server&quot;</span><span class="p">)</span>
+                            <span class="c1"># sentMsg = &quot;Image sent&quot;</span>
+                            <span class="c1"># client.send(sentMsg.encode(&quot;ascii&quot;))</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;completed sent msg to server&quot;</span><span class="p">)</span>
+
+                        <span class="c1"># OFFLINE MESSAGES</span>
+
+                        <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                        <span class="p">)</span>
+
+                        <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                        <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;select * from OFFLINE where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                        <span class="n">offline</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">offline</span><span class="p">)</span>
+
+                        <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                            <span class="nb">print</span><span class="p">()</span>
+
+                        <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM OFFLINE WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="n">offline2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">offline2</span><span class="p">)</span>
+                        <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                        <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                        <span class="p">)</span>
+
+                        <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                        <span class="n">s3</span> <span class="o">=</span> <span class="s2">&quot;select * from IMAGES where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                        <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+                        <span class="n">myresult2</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult2</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image from &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                            <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                            <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+                            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+                            <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">)</span>
+                            <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+                            <span class="nb">print</span><span class="p">()</span>
+
+                        <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM IMAGES WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="n">offline3</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">offline3</span><span class="p">)</span>
+                        <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                        <span class="n">xinp</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter X to exit&quot;</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="n">xinp</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+
+                            <span class="c1"># global rname</span>
+                            <span class="c1"># c=input(&quot;You want to close the App (C) or Chat with another person (R)&quot;)</span>
+                            <span class="c1"># if c==&quot;R&quot;:</span>
+                            <span class="c1">#     rname=input(&quot;Enter Name of Person u want to chat with now: &quot;)</span>
+                            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                                <span class="n">rname</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+                                    <span class="s2">&quot;Enter Name of Person u want to chat with now:(X for closing)  &quot;</span><span class="p">)</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="n">rname</span> <span class="o">!=</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                                    <span class="n">check2</span> <span class="o">=</span> <span class="mi">0</span>
+                                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                                    <span class="p">)</span>
+                                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                    <span class="c1"># porttoconnect = 0</span>
+                                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                                        <span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+                                    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                                    <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                                        <span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                                        <span class="k">if</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name2</span><span class="p">):</span>
+
+                                            <span class="n">check2</span> <span class="o">=</span> <span class="mi">1</span>
+                                            <span class="k">break</span>
+                                    <span class="k">if</span> <span class="p">(</span><span class="n">check2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                                        <span class="n">x1</span> <span class="o">=</span> <span class="s2">&quot;Exiting chat&quot;</span>
+                                        <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                                        <span class="k">break</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLosing the CLients&quot;</span><span class="p">)</span>
+                                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                                    <span class="p">)</span>
+                                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                    <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;select port from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                    <span class="n">ad</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">ad</span><span class="p">)</span>
+                                    <span class="n">r</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                                    <span class="n">porttochange</span> <span class="o">=</span> <span class="mi">0</span>
+                                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                                        <span class="n">porttochange</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                                    <span class="n">CB</span><span class="o">.</span><span class="n">delconn</span><span class="p">(</span><span class="n">porttochange</span><span class="p">)</span>
+                                    <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                    <span class="n">close</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                                    <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,)</span>
+                                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                                    <span class="n">x2</span> <span class="o">=</span> <span class="s2">&quot;Closing chat&quot;</span>
+                                    <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">x2</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                                    <span class="n">notexit</span><span class="o">=</span><span class="mi">1</span>
+                                    <span class="k">break</span>
+                                    <span class="c1"># print(&quot;Closing the App&quot;)</span>
+                                    <span class="c1"># closing=&quot;CLOSE&quot;</span>
+                                    <span class="c1"># client.send(closing.encode(&quot;ascii&quot;))</span>
+                            <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">x1</span> <span class="o">=</span> <span class="s2">&quot;Continue&quot;</span>
+                            <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">x1</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">porttoconnect</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SEND OFFLINE MSG USER NOT ACTIVE&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">choice5</span> <span class="o">!=</span> <span class="s2">&quot;B&quot;</span><span class="p">):</span>
+                        <span class="n">choice2</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;ENTER M FOR MESSAGE OR I FOR IMAGE: &quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">choice2</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">:</span>
+
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">z</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                                <span class="n">encz</span> <span class="o">=</span> <span class="n">recvcip</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+                                <span class="n">myquery2</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                    <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">encz</span><span class="p">)</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery2</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+                            <span class="n">encmsg</span> <span class="o">=</span> <span class="n">recvcip</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="n">myquery</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">encmsg</span><span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery</span><span class="p">)</span>
+                            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="c1"># msg = &quot;Image is incoming&quot;</span>
+                            <span class="c1"># client.send(msg.encode(&quot;ascii&quot;))</span>
+                            <span class="c1"># print(&quot;Sent image message to server&quot;)</span>
+                            <span class="n">imgName</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter name of the image: &quot;</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending image to server&quot;</span><span class="p">)</span>
+                            <span class="c1"># file = open(imgName, &#39;rb&#39;)</span>
+                            <span class="c1"># img_data = file.read()</span>
+                            <span class="c1"># count=0</span>
+                            <span class="c1"># while img_data:</span>
+                            <span class="c1">#     count=count+1</span>
+                            <span class="c1">#     img_data = file.read()</span>
+                            <span class="c1"># file.close()</span>
+                            <span class="c1"># client.send(str(count-1).encode(&quot;ascii&quot;))</span>
+                            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">imgName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+                            <span class="n">img_data</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">encodebytes</span><span class="p">(</span><span class="n">img_data</span><span class="p">)</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">str1</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="n">myquery</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO IMAGES (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">str1</span><span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery</span><span class="p">)</span>
+                            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                            <span class="c1"># str2=recvcip.msg_encrypt(str1)</span>
+                            <span class="c1"># client.send(str1.encode(&quot;ascii&quot;))</span>
+                            <span class="c1"># while img_data:</span>
+                            <span class="c1">#     client.send(img_data)</span>
+                            <span class="c1">#     print(&quot;Running&quot;)</span>
+                            <span class="c1">#     img_data = file.read(2048)</span>
+                            <span class="c1"># file.close()</span>
+                            <span class="c1"># print(&quot;Image sent to Server&quot;)</span>
+                            <span class="c1"># print(&quot;sending sent mssg to server&quot;)</span>
+                            <span class="c1"># sentMsg = &quot;Image sent&quot;</span>
+                            <span class="c1"># client.send(sentMsg.encode(&quot;ascii&quot;))</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;completed sent msg Saved to table&quot;</span><span class="p">)</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">choice</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">):</span>
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">z</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                                <span class="n">encz</span> <span class="o">=</span> <span class="n">recvcip</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+                                <span class="n">myquery2</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                    <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">encz</span><span class="p">)</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery2</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="nb">input</span><span class="p">()</span>
+                            <span class="n">encmsg</span> <span class="o">=</span> <span class="n">recvcip</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="n">myquery</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">encmsg</span><span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery</span><span class="p">)</span>
+                            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                        <span class="k">elif</span> <span class="p">(</span><span class="n">choice</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="n">str1</span> <span class="o">!=</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending image to server&quot;</span><span class="p">)</span>
+                                <span class="c1"># file = open(imgName, &#39;rb&#39;)</span>
+                                <span class="c1"># img_data = file.read()</span>
+                                <span class="c1"># count=0</span>
+                                <span class="c1"># while img_data:</span>
+                                <span class="c1">#     count=count+1</span>
+                                <span class="c1">#     img_data = file.read()</span>
+                                <span class="c1"># file.close()</span>
+                                <span class="c1"># client.send(str(count-1).encode(&quot;ascii&quot;))</span>
+                                <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">imgName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+                                <span class="n">img_data</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                                <span class="n">str1</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">encodebytes</span><span class="p">(</span><span class="n">img_data</span><span class="p">)</span>
+                                <span class="n">str1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">str1</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                                <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                                <span class="p">)</span>
+                                <span class="n">myquery</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO IMAGES (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                    <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">str1</span><span class="p">)</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                                <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                            <span class="n">imgName</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter name of the image: &quot;</span><span class="p">)</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending image to server&quot;</span><span class="p">)</span>
+                            <span class="c1"># file = open(imgName, &#39;rb&#39;)</span>
+                            <span class="c1"># img_data = file.read()</span>
+                            <span class="c1"># count=0</span>
+                            <span class="c1"># while img_data:</span>
+                            <span class="c1">#     count=count+1</span>
+                            <span class="c1">#     img_data = file.read()</span>
+                            <span class="c1"># file.close()</span>
+                            <span class="c1"># client.send(str(count-1).encode(&quot;ascii&quot;))</span>
+                            <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">imgName</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span>
+                            <span class="n">img_data</span> <span class="o">=</span> <span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">encodebytes</span><span class="p">(</span><span class="n">img_data</span><span class="p">)</span>
+                            <span class="n">str1</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">str1</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">myquery</span> <span class="o">=</span> <span class="s2">&quot;INSERT INTO IMAGES (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                <span class="n">nickname</span><span class="p">,</span> <span class="n">rname</span><span class="p">,</span> <span class="n">str1</span><span class="p">)</span>
+                            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">myquery</span><span class="p">)</span>
+                            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                            <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+                    <span class="n">xinp2</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter X to exit&quot;</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">xinp2</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+
+                        <span class="c1"># global rname</span>
+                        <span class="c1"># c=input(&quot;You want to close the App (C) or Chat with another person (R)&quot;)</span>
+                        <span class="c1"># if c==&quot;R&quot;:</span>
+                        <span class="c1">#     rname=input(&quot;Enter Name of Person u want to chat with now: &quot;)</span>
+                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="n">rname</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+                                <span class="s2">&quot;Enter Name of Person u want to chat with now:(X for closing)  &quot;</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">rname</span> <span class="o">!=</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                                <span class="n">check2</span> <span class="o">=</span> <span class="mi">0</span>
+                                <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                                <span class="p">)</span>
+                                <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                <span class="c1"># porttoconnect = 0</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+                                <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                                <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                                    <span class="k">if</span> <span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">name2</span><span class="p">):</span>
+
+                                        <span class="n">check2</span> <span class="o">=</span> <span class="mi">1</span>
+                                        <span class="k">break</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="n">check2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                                    <span class="c1"># x1 = &quot;Exiting chat&quot;</span>
+                                    <span class="c1"># client.send(x1.encode(&quot;ascii&quot;))</span>
+                                    <span class="k">break</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLosing the CLients&quot;</span><span class="p">)</span>
+                                <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                                    <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                                    <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                                    <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                                    <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                                <span class="p">)</span>
+                                <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                                <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;update CLIENTS set port=</span><span class="si">%s</span><span class="s2"> where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                <span class="n">close</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="p">(</span><span class="n">close</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,)</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                                <span class="c1"># x2 = &quot;X&quot;</span>
+                                <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">rname</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+                                <span class="n">notexit</span><span class="o">=</span><span class="mi">1</span>
+                                <span class="k">break</span></div>
+                                <span class="c1"># print(&quot;Closing the App&quot;)</span>
+                                <span class="c1"># closing=&quot;CLOSE&quot;</span>
+                                <span class="c1"># client.send(closing.encode(&quot;ascii&quot;))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Before receiving thread&quot;</span><span class="p">)</span>
+        <span class="n">r_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">recieve</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;initialized rec thread&quot;</span><span class="p">)</span>
+        <span class="n">r_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Started rec thread&quot;</span><span class="p">)</span>
+
+        <span class="c1"># sending thread</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;before send thread init&quot;</span><span class="p">)</span>
+        <span class="n">s_thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">send</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;init send thread&quot;</span><span class="p">)</span>
+        <span class="n">s_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="c1">#</span>
+        <span class="c1"># CHANGE ITS PORT NUMBER TO -1</span>
+        <span class="c1">#</span>
+        <span class="c1">#</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;started send thread&quot;</span><span class="p">)</span>
+        <span class="c1"># while notexit==0:</span>
+        <span class="c1">#     pass</span>
+
+        <span class="c1"># z=input(&quot;WANT TO EXIT THE WHILE LOOP&quot;)</span>
+        <span class="c1"># CHANGE PORT TO -1 BEFORE CLOSING THE SERVER</span>
+    <span class="k">elif</span> <span class="n">type2</span><span class="o">==</span><span class="s2">&quot;GR&quot;</span><span class="p">:</span>
+        <span class="n">type1</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+        <span class="s2">&quot;ENTER C: CREATE GROUP || G: MESSAGE/ADD/DELETE MEMBERS IN GROUP || X: LEAVE CHAT&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">type1</span> <span class="o">==</span> <span class="s2">&quot;C&quot;</span><span class="p">:</span>
+            <span class="n">name1</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter Name of Group&quot;</span><span class="p">)</span>
+            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;INSERT INTO group1 (groupname, admin, member) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">name1</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,</span> <span class="n">nickname</span><span class="p">))</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">sql</span><span class="p">)</span>
+            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="c1"># while True:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter Name of Group Member (ENTER X TO FINISH)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">!=</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                    <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+                    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                        <span class="c1"># print(x)</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">):</span>
+                            <span class="n">d</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s2">&quot;INSERT INTO group1 (groupname, admin, member) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">name1</span><span class="p">,</span> <span class="n">nickname</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">sql</span><span class="p">)</span>
+                        <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User Doesnt Exist&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">break</span>
+        <span class="k">elif</span> <span class="n">type1</span> <span class="o">==</span> <span class="s2">&quot;G&quot;</span><span class="p">:</span>
+            <span class="c1">###</span>
+            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+            <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+            <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+            <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;select pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="c1"># start</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,))</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">mykey</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>
+            <span class="n">sendcip</span> <span class="o">=</span> <span class="n">AESCipher</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>  <span class="c1"># end</span>
+
+            <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;select * from OFFLINE where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+            <span class="n">offline</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">offline</span><span class="p">)</span>
+
+            <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="c1"># print(&quot;======PENDING CHATS=======&quot;)</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                <span class="nb">print</span><span class="p">()</span>
+
+            <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM OFFLINE WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">offline2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">offline2</span><span class="p">)</span>
+            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+            <span class="c1">####</span>
+            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+            <span class="n">s3</span> <span class="o">=</span> <span class="s2">&quot;select * from IMAGES where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+            <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+            <span class="n">myresult2</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult2</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image from &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+                <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">)</span>
+                <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+                <span class="nb">print</span><span class="p">()</span>
+
+            <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM IMAGES WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">offline3</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">offline3</span><span class="p">)</span>
+            <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="c1">###</span>
+            <span class="c1"># name1=input(&quot;Enter Name of Group&quot;)</span>
+            <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+            <span class="p">)</span>
+
+            <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">sql</span> <span class="o">=</span> <span class="s2">&quot;SELECT * from group1 where member=</span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="n">adr</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="n">adr</span><span class="p">)</span>
+            <span class="n">r</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">groupinfo</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter Name of group you want to chat with: (Enter X is exist) &quot;</span><span class="p">)</span>
+                <span class="n">grpexist</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">a</span> <span class="o">==</span> <span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                        <span class="n">groupinfo</span> <span class="o">=</span> <span class="n">i</span>
+                        <span class="n">grpexist</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">grpexist</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span><span class="p">(</span><span class="n">a</span><span class="o">==</span><span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid Group&quot;</span><span class="p">)</span>
+            <span class="n">isadmin</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">groupinfo</span><span class="o">==</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+                <span class="k">pass</span>
+            
+            <span class="k">elif</span> <span class="p">(</span><span class="n">groupinfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">nickname</span><span class="p">):</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+
+                    <span class="c1">###############</span>
+                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;select pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="c1"># start</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,))</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="n">mykey</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>
+                    <span class="n">sendcip</span> <span class="o">=</span> <span class="n">AESCipher</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>  <span class="c1"># end</span>
+
+                    <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;select * from OFFLINE where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                    <span class="n">offline</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">offline</span><span class="p">)</span>
+
+                    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="c1"># print(&quot;======PENDING CHATS=======&quot;)</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                        <span class="nb">print</span><span class="p">()</span>
+
+                    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM OFFLINE WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">offline2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">offline2</span><span class="p">)</span>
+                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                    <span class="c1">####</span>
+                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                    <span class="n">s3</span> <span class="o">=</span> <span class="s2">&quot;select * from IMAGES where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                    <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+                    <span class="n">myresult2</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult2</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image from &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                        <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+                        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+                        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">)</span>
+                        <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+                        <span class="nb">print</span><span class="p">()</span>
+
+                    <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM IMAGES WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">offline3</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">offline3</span><span class="p">)</span>
+                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="c1">##############</span>
+
+                    <span class="n">k</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span>
+                        <span class="s2">&quot;A to add member || D to delete member || M to send message || X to exit&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;A&quot;</span><span class="p">):</span>
+                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="n">nameUser</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter name of user to add: &quot;</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">nameUser</span><span class="p">):</span>
+                                    <span class="n">w</span> <span class="o">=</span> <span class="mi">1</span>
+                                    <span class="k">break</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">w</span><span class="p">):</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User already exists in the group&quot;</span><span class="p">)</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">d</span> <span class="o">=</span> <span class="mi">0</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT name FROM CLIENTS&quot;</span><span class="p">)</span>
+                                <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                                <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                                    <span class="k">if</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">a</span><span class="p">):</span>
+                                        <span class="n">d</span> <span class="o">=</span> <span class="mi">1</span>
+                                        <span class="k">break</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                                    <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;insert into group1 (groupname, admin, member) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                        <span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">nameUser</span><span class="p">)</span>
+                                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">s1</span><span class="p">)</span>
+                                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                                    <span class="k">break</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;User does not exist Try Again...&quot;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;D&quot;</span><span class="p">):</span>
+                        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                            <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span>
+                            <span class="n">nameUser</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter name of user to remove: &quot;</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="n">nameUser</span><span class="p">):</span>
+                                    <span class="n">w</span> <span class="o">=</span> <span class="mi">1</span>
+                                    <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;delete from group1 where groupname=</span><span class="si">%s</span><span class="s2"> and member=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                    <span class="n">g1</span> <span class="o">=</span> <span class="p">(</span><span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">nameUser</span><span class="p">,</span> <span class="p">)</span>
+                                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">g1</span><span class="p">)</span>
+                                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                                    <span class="k">break</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">w</span><span class="p">):</span>
+                                <span class="k">break</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid UserName&quot;</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">):</span>
+                    
+
+                        <span class="n">msg</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter message: &quot;</span><span class="p">)</span>
+                        <span class="n">q1</span> <span class="o">=</span> <span class="s2">&quot;select * from group1 where groupname = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="n">s2</span> <span class="o">=</span> <span class="p">(</span><span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">)</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">s2</span><span class="p">)</span>
+                        <span class="n">r1</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r1</span><span class="p">:</span>
+                            <span class="n">receiver</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                            <span class="c1"># a=nickname</span>
+                            <span class="n">sender</span> <span class="o">=</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;::&quot;</span><span class="o">+</span><span class="n">nickname</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">nickname</span> <span class="o">!=</span> <span class="n">receiver</span><span class="p">):</span>
+                                <span class="n">q2</span><span class="o">=</span><span class="s2">&quot;SELECT pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q2</span><span class="p">,(</span><span class="n">receiver</span><span class="p">,))</span>
+                                <span class="n">r3</span><span class="o">=</span><span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                                <span class="n">b4</span><span class="o">=</span><span class="n">AESCipher</span><span class="p">(</span><span class="n">r3</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                                <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;INSERT into OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                    <span class="n">sender</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">b4</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">query</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid input, Try again&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                    <span class="c1">#####</span>
+                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;select pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>  <span class="c1"># start</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,))</span>
+                    <span class="n">res</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="n">mykey</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>
+                    <span class="n">sendcip</span> <span class="o">=</span> <span class="n">AESCipher</span><span class="p">(</span><span class="n">mykey</span><span class="p">)</span>  <span class="c1"># end</span>
+
+                    <span class="n">s1</span> <span class="o">=</span> <span class="s2">&quot;select * from OFFLINE where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                    <span class="n">offline</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s1</span><span class="p">,</span> <span class="n">offline</span><span class="p">)</span>
+
+                    <span class="n">myresult</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                    <span class="c1"># print(&quot;======PENDING CHATS=======&quot;)</span>
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot; : &quot;</span><span class="p">,</span> <span class="n">sendcip</span><span class="o">.</span><span class="n">msg_decrypt</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+                        <span class="nb">print</span><span class="p">()</span>
+
+                    <span class="n">s2</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM OFFLINE WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">offline2</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span> <span class="n">offline2</span><span class="p">)</span>
+                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+                    <span class="c1">####</span>
+                    <span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                        <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+                        <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+                        <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+                        <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+                    <span class="p">)</span>
+
+                    <span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+                    <span class="n">s3</span> <span class="o">=</span> <span class="s2">&quot;select * from IMAGES where reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+
+                    <span class="n">off</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s3</span><span class="p">,</span> <span class="n">off</span><span class="p">)</span>
+
+                    <span class="n">myresult2</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+                    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">myresult2</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image from &quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">msg2</span> <span class="o">=</span> <span class="nb">bytes</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+                        <span class="n">msg3</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decodebytes</span><span class="p">(</span><span class="n">msg2</span><span class="p">)</span>
+                        <span class="n">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">,</span> <span class="s2">&quot;wb&quot;</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">msg3</span><span class="p">)</span>
+                        <span class="n">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                        <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+                        <span class="n">img</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="s2">&quot;ReceivedImg.jpg&quot;</span><span class="p">)</span>
+                        <span class="n">img</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+                        <span class="nb">print</span><span class="p">()</span>
+
+                    <span class="n">s4</span> <span class="o">=</span> <span class="s2">&quot;DELETE FROM IMAGES WHERE reciever = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">offline3</span> <span class="o">=</span> <span class="p">(</span><span class="n">nickname</span><span class="p">,</span> <span class="p">)</span>
+                    <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s4</span><span class="p">,</span> <span class="n">offline3</span><span class="p">)</span>
+                    <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="c1">#####</span>
+
+
+                    <span class="n">k</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;M to message || X to exit || L to leave group&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;M&quot;</span><span class="p">):</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Enter message: &quot;</span><span class="p">)</span>
+                        <span class="n">q1</span> <span class="o">=</span> <span class="s2">&quot;select * from group1 where groupname = </span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="n">s2</span> <span class="o">=</span> <span class="p">(</span><span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">)</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q1</span><span class="p">,</span> <span class="n">s2</span><span class="p">)</span>
+                        <span class="n">r1</span> <span class="o">=</span> <span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r1</span><span class="p">:</span>
+                            <span class="n">receiver</span> <span class="o">=</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                            <span class="n">sender</span> <span class="o">=</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s2">&quot;::&quot;</span><span class="o">+</span><span class="n">nickname</span>
+                            <span class="k">if</span> <span class="p">(</span><span class="n">nickname</span> <span class="o">!=</span> <span class="n">receiver</span><span class="p">):</span>
+                                <span class="n">q2</span><span class="o">=</span><span class="s2">&quot;SELECT pkey from CLIENTS where name=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q2</span><span class="p">,(</span><span class="n">receiver</span><span class="p">,))</span>
+                                <span class="n">r3</span><span class="o">=</span><span class="n">mycursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+                                <span class="n">b4</span><span class="o">=</span><span class="n">AESCipher</span><span class="p">(</span><span class="n">r3</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                                <span class="n">query</span> <span class="o">=</span> <span class="s2">&quot;INSERT into OFFLINE (sender, reciever, message) VALUES (</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="p">(</span>
+                                    <span class="n">sender</span><span class="p">,</span> <span class="n">receiver</span><span class="p">,</span> <span class="n">b4</span><span class="o">.</span><span class="n">msg_encrypt</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+                                <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">query</span><span class="p">)</span>
+                                <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;L&quot;</span><span class="p">):</span>
+                        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;delete from group1 where groupname=</span><span class="si">%s</span><span class="s2"> and member=</span><span class="si">%s</span><span class="s2">&quot;</span>
+                        <span class="n">g</span> <span class="o">=</span> <span class="p">(</span><span class="n">groupinfo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">groupinfo</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="p">)</span>
+                        <span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">g</span><span class="p">)</span>
+                        <span class="n">mydb</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                        <span class="k">break</span>
+                    <span class="k">elif</span> <span class="p">(</span><span class="n">k</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                        <span class="k">break</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid input, Try again&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">type2</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">):</span>
+       <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Exit&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, dexter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

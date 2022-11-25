@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>load module &mdash; fastchat  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="server module" href="server.html" />
+    <link rel="prev" title="crypt module" href="crypt.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+            <a href="index.html" class="icon icon-home"> fastchat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">FastChat</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="client.html">client module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="crypt.html">crypt module</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">load module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#load.ClientBalance"><code class="docutils literal notranslate"><span class="pre">ClientBalance</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#load.ClientBalance.Addconn"><code class="docutils literal notranslate"><span class="pre">ClientBalance.Addconn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#load.ClientBalance.delconn"><code class="docutils literal notranslate"><span class="pre">ClientBalance.delconn()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#load.ClientBalance.incrementconn"><code class="docutils literal notranslate"><span class="pre">ClientBalance.incrementconn()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#load.ServerBalance"><code class="docutils literal notranslate"><span class="pre">ServerBalance</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#load.ServerBalance.PortAllocation"><code class="docutils literal notranslate"><span class="pre">ServerBalance.PortAllocation()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#load.ServerBalance.__init__"><code class="docutils literal notranslate"><span class="pre">ServerBalance.__init__()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="server.html">server module</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">fastchat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">FastChat</a></li>
+      <li class="breadcrumb-item active">load module</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/load.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-load">
+<span id="load-module"></span><h1>load module<a class="headerlink" href="#module-load" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="load.ClientBalance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">load.</span></span><span class="sig-name descname"><span class="pre">ClientBalance</span></span><a class="reference internal" href="_modules/load.html#ClientBalance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ClientBalance" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is implementation of client balancer. If a new client is registered then it is connected to a server with the minimum number of ports to balance the load. <br>
+The member functions are: <br>
+1. Addconn <br>
+2. delconn <br>
+3. incrementconn</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="load.ClientBalance.Addconn">
+<span class="sig-name descname"><span class="pre">Addconn</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/load.html#ClientBalance.Addconn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ClientBalance.Addconn" title="Permalink to this definition"></a></dt>
+<dd><p>This function finds a port with number of connections in the Table and updates it by adding one as new client will be connected to this port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>port at which a new client has to be connected</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="load.ClientBalance.delconn">
+<span class="sig-name descname"><span class="pre">delconn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">portnum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/load.html#ClientBalance.delconn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ClientBalance.delconn" title="Permalink to this definition"></a></dt>
+<dd><p>This function is implemented to delete a connection at a server.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>portnum</strong> (<em>int</em>) – The port number at which a connection has to be deleted</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="load.ClientBalance.incrementconn">
+<span class="sig-name descname"><span class="pre">incrementconn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">portnum</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/load.html#ClientBalance.incrementconn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ClientBalance.incrementconn" title="Permalink to this definition"></a></dt>
+<dd><p>This function is implemented to add a connection to a port.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>portnum</strong> (<em>int</em>) – The port number at which a connection has to be inserted.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="load.ServerBalance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">load.</span></span><span class="sig-name descname"><span class="pre">ServerBalance</span></span><a class="reference internal" href="_modules/load.html#ServerBalance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ServerBalance" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This is the implementation of the server balancer. <br>
+The member functions are: <br>
+1. Intializing Constructor <br>
+2. PortAllocation</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="load.ServerBalance.PortAllocation">
+<span class="sig-name descname"><span class="pre">PortAllocation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/load.html#ServerBalance.PortAllocation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ServerBalance.PortAllocation" title="Permalink to this definition"></a></dt>
+<dd><p>It finds a port which is not yet connected to any client. It fetches this portnumber from the tables created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The port number which is not yet connected to any client.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="load.ServerBalance.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/load.html#ServerBalance.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#load.ServerBalance.__init__" title="Permalink to this definition"></a></dt>
+<dd><p>This is the constructor of the class. It creates a table in MySQL called PORTS which keep records of the number of ports a server is connected to. If the table is initally empty it creates 5 ports.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="crypt.html" class="btn btn-neutral float-left" title="crypt module" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="server.html" class="btn btn-neutral float-right" title="server module" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, dexter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

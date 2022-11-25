@@ -1,0 +1,11 @@
+crypt module
+============
+
+.. automodule:: crypt
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. |br| raw:: html
+
+      <br>

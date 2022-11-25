@@ -1,0 +1,11 @@
+load module
+===========
+
+.. automodule:: load
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. |br| raw:: html
+
+      <br>

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>server &mdash; fastchat  documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: white" >
+            <a href="../index.html" class="icon icon-home"> fastchat
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../modules.html">FastChat</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: white" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">fastchat</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">server</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for server</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">socket</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">Thread</span>
+<span class="kn">import</span> <span class="nn">mysql.connector</span>
+<span class="kn">import</span> <span class="nn">load</span>
+
+<span class="c1">#creating a object of ServerBalance class from file load.py</span>
+<span class="n">SB</span><span class="o">=</span> <span class="n">load</span><span class="o">.</span><span class="n">ServerBalance</span><span class="p">()</span>
+<span class="c1"># local host and port</span>
+
+<span class="c1">#connecting to MySQL</span>
+<span class="n">mydb</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+  <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+  <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+  <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span>
+<span class="p">)</span>
+
+<span class="c1">#creating database FASTCHAT</span>
+<span class="n">mycursor1</span> <span class="o">=</span> <span class="n">mydb</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">mycursor1</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SHOW DATABASES&quot;</span><span class="p">)</span>
+<span class="n">mycursor1</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE DATABASE IF NOT EXISTS FASTCHAT&quot;</span><span class="p">)</span>
+
+<span class="c1">#connecting to database</span>
+<span class="n">mydb2</span> <span class="o">=</span> <span class="n">mysql</span><span class="o">.</span><span class="n">connector</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+  <span class="n">host</span><span class="o">=</span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
+  <span class="n">user</span><span class="o">=</span><span class="s2">&quot;root&quot;</span><span class="p">,</span>
+  <span class="n">password</span><span class="o">=</span><span class="s2">&quot;Harshit123@&quot;</span><span class="p">,</span>
+  <span class="n">database</span><span class="o">=</span><span class="s2">&quot;FASTCHAT&quot;</span>
+<span class="p">)</span>
+<span class="n">mycursor</span> <span class="o">=</span> <span class="n">mydb2</span><span class="o">.</span><span class="n">cursor</span><span class="p">(</span><span class="n">buffered</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1">#creating required tables</span>
+<span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS CLIENTS (name VARCHAR(255) PRIMARY KEY, password VARCHAR(255), port int, pkey longtext)&quot;</span><span class="p">)</span>
+<span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS OFFLINE (sender VARCHAR(255), reciever VARCHAR(255), message longtext)&quot;</span><span class="p">)</span>
+<span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS IMAGES (sender VARCHAR(255), reciever VARCHAR(255), message longtext)&quot;</span><span class="p">)</span>
+<span class="n">mycursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS GROUP1 (groupname VARCHAR(255), admin VARCHAR(255), member longtext)&quot;</span><span class="p">)</span>
+
+<span class="n">host</span> <span class="o">=</span> <span class="s2">&quot;127.0.0.1&quot;</span>
+<span class="n">port</span> <span class="o">=</span>  <span class="n">SB</span><span class="o">.</span><span class="n">PortAllocation</span><span class="p">()</span><span class="c1">#TAKING PORT NUMBER FORM LOAD BALANCER</span>
+
+<span class="n">server</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+<span class="c1"># # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)</span>
+<span class="c1"># client.connect((&quot;127.0.0.1&quot;, port))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BIDNING&quot;</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">bind</span><span class="p">((</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;LISTING &quot;</span><span class="p">)</span>
+<span class="n">server</span><span class="o">.</span><span class="n">listen</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STARTING&quot;</span><span class="p">)</span>
+
+<span class="n">clients</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">nicknames</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="broadcast"><a class="viewcode-back" href="../server.html#server.broadcast">[docs]</a><span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="n">message</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function is used to broadcast messages to all the clients.</span>
+
+<span class="sd">    :param message: This is the message which is to be broadcasted to the clients.</span>
+<span class="sd">    :type message: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STARTING FOR LOOP&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">clients</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SENDING MESSAGE TO A CLIENT&quot;</span><span class="p">)</span>
+        <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="sender"><a class="viewcode-back" href="../server.html#server.sender">[docs]</a><span class="k">def</span> <span class="nf">sender</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="n">name</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function is used to send message to a particluar client.</span>
+
+<span class="sd">    :param message: This is the message which is to be sent to the client.</span>
+<span class="sd">    :type message: string</span>
+<span class="sd">    :param name: Name of the client to which we want to send message.</span>
+<span class="sd">    :type name: string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">i</span><span class="o">=</span><span class="mi">0</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STARTING FOR LOOP&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">client</span> <span class="ow">in</span> <span class="n">clients</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;h17&quot;</span><span class="p">)</span>
+        <span class="k">if</span><span class="p">(</span><span class="n">nicknames</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">==</span><span class="n">name</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;h18&quot;</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+        <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span></div>
+
+
+
+<div class="viewcode-block" id="handle"><a class="viewcode-back" href="../server.html#server.handle">[docs]</a><span class="k">def</span> <span class="nf">handle</span><span class="p">(</span><span class="n">client</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This function Handles a client at a time. It recieves a message from a client and then calls the send function to send the message to another client. The message can be image or text. Both cases are handeled differently. It can also close the connection.</span>
+
+<span class="sd">    :param client: Used to send and recieve the message from/to the clients.</span>
+<span class="sd">    :type client: socket</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Handle Function Started&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nicknames</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;list of Nicknames&quot;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+            <span class="n">r2</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="n">r2</span><span class="o">==</span><span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">Exception</span>
+            <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">message</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span><span class="o">==</span><span class="s2">&quot;Image is incoming&quot;</span><span class="p">):</span>
+                    
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Image message came to server&quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;recieving image into server&quot;</span><span class="p">)</span>
+                    <span class="n">s2</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1048576</span><span class="p">)</span>
+                    <span class="n">sender</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="n">r2</span><span class="p">)</span>
+                    <span class="n">sender</span><span class="p">(</span><span class="n">s2</span><span class="p">,</span><span class="n">r2</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RECIEVING MESSAGE FROM CLIENT&quot;</span><span class="p">)</span>
+                    <span class="c1"># name=client.recv(1024)</span>
+                    
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BROADCASTING MES&quot;</span><span class="p">)</span>
+                    <span class="n">sender</span><span class="p">(</span><span class="n">message</span><span class="p">,</span><span class="n">r2</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DISPLAYED&quot;</span><span class="p">)</span>
+
+                <span class="nb">next</span><span class="o">=</span><span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NEXT CHECKED&quot;</span><span class="p">)</span>
+                <span class="k">if</span><span class="p">(</span><span class="nb">next</span><span class="o">==</span><span class="s2">&quot;Exiting chat&quot;</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Breaking&quot;</span><span class="p">)</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span><span class="p">(</span><span class="nb">next</span><span class="o">==</span><span class="s2">&quot;Closing chat&quot;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span>
+                <span class="k">elif</span><span class="p">(</span><span class="nb">next</span><span class="o">==</span><span class="s2">&quot;X&quot;</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Over&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Inside Excepton of Handle&quot;</span><span class="p">)</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">clients</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Index is : &quot;</span><span class="p">,</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">clients</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">client</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">nickname</span> <span class="o">=</span> <span class="n">nicknames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">nicknames</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">nickname</span><span class="p">)</span>
+            <span class="c1"># broadcast(f&quot;{nickname} has left the chat!&quot;.encode(&quot;ascii&quot;))</span>
+            
+            <span class="k">break</span></div>
+
+<div class="viewcode-block" id="receive"><a class="viewcode-back" href="../server.html#server.receive">[docs]</a><span class="k">def</span> <span class="nf">receive</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Recieves connection requests from the clients. Also starts the connection with the client if a new client joins.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STARTING RECIEVE&quot;</span><span class="p">)</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;INSIDE RECIENCE TRUE&quot;</span><span class="p">)</span>
+        <span class="n">client</span><span class="p">,</span> <span class="n">address</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ACCEPTING FROM SERVER&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Connected with </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">address</span><span class="p">)))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SENDING TO CLIENT&quot;</span><span class="p">)</span>
+
+        <span class="n">client</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="s2">&quot;NICK&quot;</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SENT&quot;</span><span class="p">)</span>
+        <span class="n">nickname</span> <span class="o">=</span>  <span class="n">client</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;ascii&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;RECEIVING NICKNAME&quot;</span><span class="p">)</span>
+        <span class="n">nicknames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">nickname</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;NICKNAME ADDED&quot;</span><span class="p">)</span>
+        <span class="n">clients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">client</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CLIENT ADDED&quot;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Name of the client  is </span><span class="si">{</span><span class="n">nickname</span><span class="si">}</span><span class="s2">!&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;MESSAGE BROADCASTING&quot;</span><span class="p">)</span>
+        <span class="c1"># broadcast(f&quot;{nickname} joined the chat!&quot;.encode(&quot;ascii&quot;))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;BROADCASTED&quot;</span><span class="p">)</span>
+        <span class="c1"># client.send(&quot;Connected to the server!&quot;.encode(&quot;ascii&quot;))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CONNECTION COMPLETE&quot;</span><span class="p">)</span>
+
+        <span class="c1"># starting a thread for each user</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">handle</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">client</span><span class="p">,))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;h34&quot;</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;INSIDE MAIN&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Server is listening...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;STARTING RECIEVE&quot;</span><span class="p">)</span>
+    <span class="n">receive</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;h37&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, dexter.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

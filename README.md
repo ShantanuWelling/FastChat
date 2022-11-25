@@ -55,6 +55,7 @@
    * Image Transfer and Encryption
    * Offline Messages
    * Group Messages broadcasting
+   * Performance Analysis
    * Sphinx Documentation
 
 

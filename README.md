@@ -42,17 +42,20 @@
    * Load Balancer
    * Offline Messages
    * Performance Analysis
+   * Group Creation
 
 2. SHANTANU WELLING (210010076)
    * Encryption and Authentication
    * Offline Messages
    * Load Balancer
    * Performance Analysis
+   * Group member addition and deletion
 
 3. HARSHIT AGARWAL (210020054)
-   * Image Transfer
+   * Image Transfer and Encryption
    * Offline Messages
-   * Documentation
+   * Group Messages broadcasting
+   * Sphinx Documentation
 
 
 

@@ -279,8 +279,8 @@ if type2 == "P":
                     break
                 # if message=="CLOSE":
                 #     return
-                if message == "NICK":
-                    # print("msg recieved is nick")
+                if message == "TESTNAME":
+                    # print("msg recieved is testname")
                     client.send(nickname.encode("ascii"))
                     
 

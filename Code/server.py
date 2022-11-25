@@ -147,10 +147,10 @@ def receive():
         print("Connected with {}".format(str(address)))
         # print("SENDING TO CLIENT")
 
-        client.send("NICK".encode("ascii"))
+        client.send("TESTNAME".encode("ascii"))
         # print("SENT")
         nickname =  client.recv(1024).decode("ascii")
-        # print("RECEIVING NICKNAME")
+        # print("RECEIVING TESTNAME")
         nicknames.append(nickname)
         # print("NICKNAME ADDED")
         clients.append(client)
